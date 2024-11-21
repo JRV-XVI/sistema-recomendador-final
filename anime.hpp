@@ -3,6 +3,7 @@
 
 #include <string>
 #include <iostream>
+#include <functional>
 
 using namespace std;
 
@@ -17,7 +18,7 @@ public:
     int members;
 
     // Constructor por defecto
-    Anime() : anime_id(0), name(""), genre(""), type(""), episodes(0), rating(0.0), members(0) {}
+    Anime() = default;
 
     // Constructor con parámetros
     Anime(int id, const string& n, const string& g, const string& t, int ep, float r, int m)
@@ -28,6 +29,9 @@ public:
         return name < other.name;
     }
 
+    bool operator==(const Anime& other) const {
+        return name == other.name;
+    }
     // Método para mostrar la información del anime
     void display() const {
         std::cout << "\nID: " << anime_id
@@ -39,6 +43,12 @@ public:
                 << "\nMiembros: " << members
                 << "\n------------------------------------\n";
     }
+
+    struct Hash {
+        std::size_t operator()(const Anime& anime) const {
+            return std::hash<int>{}(anime.anime_id);
+        }
+    };
 
 };
 

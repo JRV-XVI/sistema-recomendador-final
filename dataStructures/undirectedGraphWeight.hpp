@@ -1,7 +1,9 @@
 #ifndef UNDIRECTED_GRAPH_WEIGHT_HPP
 #define UNDIRECTED_GRAPH_WEIGHT_HPP
 
+#include "../anime.hpp"
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 #include <unordered_map>
 #include <queue>
@@ -13,10 +15,9 @@
  */
 struct edge {
 
-    std::string v1;          /**< The first vertex of the edge. */
-
-    std::string v2;          /**< The second vertex of the edge. */
-
+    Anime v1;          /**< The first vertex of the edge. */
+    Anime v2;          /**< The second vertex of the edge. */
+    int weight;
 };
 
 /**
@@ -49,7 +50,7 @@ public:
      * 
      *  @return A const reference to the vector with vertices of the graph.
      */
-    const std::vector<std::string>& vertices() const 
+    const std::vector<Anime>& vertices() const 
     { 
         return vertices_; 
     }
@@ -63,6 +64,20 @@ public:
     {
         return edges_;
     }
+    
+    /**
+     *  Returns weight of two vertices.
+     *
+     *  @return A const weight of two vertices.
+     */
+    const int weight(const Anime &v1, const Anime &v2) {
+    // Check if the vertices exist
+    for (const auto &ei : edges_) {
+      if (ei.v1 == v1 && ei.v2 == v2)
+        return ei.weight;
+    }
+    return -1;
+  }
 
     /**
      *  Checks if the graph is empty.
@@ -79,7 +94,7 @@ public:
      *
      *  @param[in]  v   The identifier of the vertex.
      */
-    void add_vertex(const std::string& v)
+    void add_vertex(const Anime& v)
     {
         // Check if the vertex already exists
         if (contains_vertex(v)) {
@@ -101,7 +116,7 @@ public:
      * 
      *  @note This function uses the erase-remove idiom to remove the vertex from the collection of vertices.
      */
-    void remove_vertex(const std::string& v)
+    void remove_vertex(const Anime& v)
     {
         // Check if the vertex exists
         if (mapping_.find(v) == mapping_.end()) {
@@ -133,7 +148,7 @@ public:
      * 
      *  @return True if the graph contains the vertex, false otherwise.
      */
-    bool contains_vertex(const std::string& v) const
+    bool contains_vertex(const Anime& v) const
     {
         return mapping_.find(v) != mapping_.end();
     }
@@ -144,7 +159,7 @@ public:
      *  @param[in]  v1  The identifier of the first vertex of the edge.
      *  @param[in]  v2  The identifier of the second vertex of the edge.
      */
-    void add_edge(const std::string& v1, const std::string& v2)
+    void add_edge(const Anime& v1, const Anime& v2, const int weight)
     {
         // Check if the vertices exist
         if (!contains_vertex(v1) || !contains_vertex(v2)) {
@@ -165,7 +180,7 @@ public:
         }
 
         // Add the edge to the collection of edges.
-        edges_.push_back({ v1, v2 });
+        edges_.push_back({ v1, v2, weight });
     }
 
     /**
@@ -174,7 +189,7 @@ public:
      *  @param[in]  v1  The identifier of the first vertex of the edge.
      *  @param[in]  v2  The identifier of the second vertex of the edge.
      */
-    void remove_edge(const std::string& v1, const std::string& v2)
+    void remove_edge(const Anime& v1, const Anime& v2)
     {
         // Check if the edge exists
         if (!contains_edge(v1, v2)) {
@@ -199,7 +214,7 @@ public:
      *
      *  @return True if the graph contains the edge, false otherwise.
      */
-    bool contains_edge(const std::string& v1, const std::string& v2) const
+    bool contains_edge(const Anime& v1, const Anime& v2) const
     {
         for (const auto& ei : edges_) {
             if ((ei.v1 == v1 && ei.v2 == v2) || (ei.v1 == v2 && ei.v2 == v1))
@@ -216,9 +231,9 @@ public:
      *
      *  @return A vector with the identifiers of the neighbors of the vertex.
      */
-    std::vector<std::string> neighbors(const std::string& v) const
+    std::vector<Anime> neighbors(const Anime& v) const
     {   
-        std::vector<std::string> result;
+        std::vector<Anime> result;
 
         for (const auto& e : edges_) {
             if (e.v1 == v)
@@ -237,7 +252,7 @@ public:
      *
      *  @return The degree of the vertex.
      */
-    unsigned long long degree(const std::string& v) const
+    unsigned long long degree(const Anime& v) const
     {
         return neighbors(v).size();
     }
@@ -250,27 +265,27 @@ public:
      *
      *  @return A vector with the identifiers of the vertices in BFS order.
      */
-    std::vector<std::string> bfs(const std::string& start) const
+    std::vector<Anime> bfs(const Anime& start) const
     {
         // Check if the graph is empty
         if (vertices_.empty()) {
             std::cout << "Graph is empty" << std::endl;
-            return std::vector<std::string>();
+            return std::vector<Anime>();
         }
 
         // Check if the vertex exists
         if (!contains_vertex(start)) {
             std::cout << "Vertex with the id does not exists" << std::endl;
-            return std::vector<std::string>();
+            return std::vector<Anime>();
         }
 
         // Print the BFS traversal message
-        std::cout << "BFS traversal from " << start << ": ";
+        std::cout << "BFS traversal from " << start.name << ": ";
 
         // Initialize the explored array and the frontier queue
         std::vector<bool> explored(vertices_.size(), false);
-        std::queue<std::string> frontier;
-        std::vector<std::string> visited;
+        std::queue<Anime> frontier;
+        std::vector<Anime> visited;
 
         // Add the first vertex to the frontier
         frontier.push(start);
@@ -311,27 +326,27 @@ public:
      *
      *  @return A vector with the identifiers of the vertices in BFS order.
      */
-    std::vector<std::string> dfs(const std::string& start) const
+    std::vector<Anime> dfs(const Anime& start) const
     {
         // Check if the graph is empty
         if (vertices_.empty()) {
             std::cout << "Graph is empty" << std::endl;
-            return std::vector<std::string>();
+            return std::vector<Anime>();
         }
 
         // Check if the vertex exists
         if (!contains_vertex(start)) {
             std::cout << "Vertex with the id does not exists" << std::endl;
-            return std::vector<std::string>();
+            return std::vector<Anime>();
         }
 
         // Print the DFS traversal message
-        std::cout << "DFS traversal from " << start << ": ";
+        std::cout << "DFS traversal from " << start.name << ": ";
 
         // Initialize the explored array and the frontier stack
         std::vector<bool> explored(vertices_.size(), false);
-        std::stack<std::string> frontier;
-        std::vector<std::string> visited;
+        std::stack<Anime> frontier;
+        std::vector<Anime> visited;
 
         // Add the first vertex to the frontier
         frontier.push(start);
@@ -340,7 +355,7 @@ public:
         // Perform the DFS traversal
         while (!frontier.empty()) {
 
-            std::string current = frontier.top();
+            Anime current = frontier.top();
             frontier.pop();
             size_t currentIndex = mapping_.at(current);
             visited.push_back(vertices_[currentIndex]);
@@ -371,7 +386,7 @@ public:
      *  
      *  @param[in]  start   The identifier of the vertex to start the traversal.
      */
-    void print_bfs(const std::string& start) const
+    void print_bfs(const Anime& start) const
     {   
         // Check if the graph is empty
         if (vertices_.empty()) {
@@ -386,11 +401,11 @@ public:
         }        
 
         // Print the BFS traversal message
-        std::cout << "BFS traversal from " << start << ": ";
+        std::cout << "BFS traversal from " << start.name << ": ";
 
         // Initialize the explored array and the frontier queue
         std::vector<bool> explored(vertices_.size(), false);
-        std::queue<std::string> frontier;
+        std::queue<Anime> frontier;
 
         // Add the first vertex to the frontier
         frontier.push(start);
@@ -402,7 +417,7 @@ public:
             auto current = frontier.front();
             frontier.pop();
             size_t currentIndex = mapping_.at(current);
-            std::cout << vertices_[currentIndex] << " ";
+            std::cout << vertices_[currentIndex].name << " ";
 
             for (const auto& neighbor : neighbors(current)) {
 
@@ -429,7 +444,7 @@ public:
      *
      *  @param[in]  start   The identifier of the vertex to start the traversal.
      */
-    void print_dfs(const std::string& start) const
+    void print_dfs(const Anime& start) const
     {
         // Check if the graph is empty
         if (vertices_.empty()) {
@@ -444,11 +459,11 @@ public:
         }    
 
         // Print the DFS traversal message
-        std::cout << "DFS traversal from " << start << ": ";
+        std::cout << "DFS traversal from " << start.name << ": ";
 
         // Initialize the explored array and the frontier stack
         std::vector<bool> explored(vertices_.size(), false);
-        std::stack<std::string> frontier;
+        std::stack<Anime> frontier;
 
         // Add the first vertex to the frontier
         frontier.push(start);
@@ -457,10 +472,10 @@ public:
         // Perform the DFS traversal
         while (!frontier.empty()) {
 
-            std::string current = frontier.top();
+            Anime current = frontier.top();
             frontier.pop();
             size_t currentIndex = mapping_.at(current);
-            std::cout << vertices_[currentIndex] << " ";
+            std::cout << vertices_[currentIndex].name  << " ";
 
             for (const auto& neighborId : neighbors(current)) {
 
@@ -490,9 +505,9 @@ public:
      *
      *  @return A vector with the identifiers of the vertices in the path.
      */
-    std::vector<std::string> find_path_bfs(const std::string& start, const std::string& end) const
+    std::vector<Anime> find_path_bfs(const Anime& start, const Anime& end) const
     {        
-        std::vector<std::string> path;
+        std::vector<Anime> path;
 
         // Check if the graph is empty
         if (vertices_.empty()) {
@@ -508,25 +523,25 @@ public:
 
         // Initialize the explored array, the parents array, and the frontier queue        
         std::vector<bool> explored(vertices_.size(), false);
-        std::unordered_map<std::string, std::string> parents;
-        std::queue<std::string> frontier;
+        std::unordered_map<Anime, Anime, Anime::Hash> parents;
+        std::queue<Anime> frontier;
 
         // Add the start vertex to the frontier
         frontier.push(start);
         explored[mapping_.at(start)] = true;
-        parents[start] = "";
+        parents[start] = Anime();
 
         // Perform the BFS traversal
         while (!frontier.empty()) {
 
-            std::string current = frontier.front();
+            Anime current = frontier.front();
             frontier.pop();
 
             if (current == end) {
                 //  The end vertex has been reached, reconstruct the path
-                std::string pathVertex = current;
+                Anime pathVertex = current;
                 
-                while (pathVertex != "") {
+                while (pathVertex.name != "") {
                     path.push_back(pathVertex);
                     pathVertex = parents[pathVertex];
                 }
@@ -565,9 +580,9 @@ public:
      *
      *  @return A vector with the identifiers of the vertices in the path.
      */
-    std::vector<std::string> find_path_dfs(const std::string& start, const std::string& end) const
+    std::vector<Anime> find_path_dfs(const Anime& start, const Anime& end) const
     {
-        std::vector<std::string> path;
+        std::vector<Anime> path;
 
         // Check if the graph is empty
         if (vertices_.empty()) {
@@ -583,25 +598,25 @@ public:
 
         // Initialize the explored array, the parents array, and the frontier stack
         std::vector<bool> explored(vertices_.size(), false);
-        std::unordered_map<std::string, std::string> parents;
-        std::stack<std::string> frontier;
+        std::unordered_map<Anime, Anime, Anime::Hash> parents;
+        std::stack<Anime> frontier;
 
         // Add the start vertex to the frontier
         frontier.push(start);
         explored[mapping_.at(start)] = true;
-        parents[start] = "";
+        parents[start] = Anime();
 
         // Perform the DFS traversal
         while (!frontier.empty()) {
 
-            std::string current = frontier.top();
+            Anime current = frontier.top();
             frontier.pop();
 
             if (current == end) {
                 //  The end vertex has been reached, reconstruct the path
-                std::string pathVertex = current;
+                Anime pathVertex = current;
 
-                while (pathVertex != "") {
+                while (pathVertex.name != "") {
                     path.push_back(pathVertex);
                     pathVertex = parents[pathVertex];
                 }
@@ -630,14 +645,23 @@ public:
         }
 
         return path;
-    }    
+    }
+    
+    Anime& find_vertex(const std::string& title) {
+        for (Anime& anime : vertices_) {
+            if (anime.name == title) {
+                return anime;
+            }
+        }
+        throw std::runtime_error("Anime not found");
+    }
 
 private:
 
-    std::vector<std::string> vertices_;                             /**< The vertices of the graph. */
+    std::vector<Anime> vertices_;                             /**< The vertices of the graph. */
 
     std::vector<edge> edges_;                                       /**< The edges of the graph. */
-    std::unordered_map<std::string, unsigned long long> mapping_;   /**< Mapping from vertex Ids to indices in `vertices_`. */
+    std::unordered_map<Anime, unsigned long long, Anime::Hash> mapping_;   /**< Mapping from vertex Ids to indices in `vertices_`. */
 };
 
 #endif
