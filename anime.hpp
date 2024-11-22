@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <functional>
+#include <vector>
 
 using namespace std;
 
@@ -11,7 +12,7 @@ class Anime {
 public:
     int anime_id;
     string name;
-    string genre;
+    std::vector<std::string>  genres;
     string type;
     int episodes;
     float rating;
@@ -21,8 +22,8 @@ public:
     Anime() = default;
 
     // Constructor con parámetros
-    Anime(int id, const string& n, const string& g, const string& t, int ep, float r, int m)
-        : anime_id(id), name(n), genre(g), type(t), episodes(ep), rating(r), members(m) {}
+    Anime(int id, const string& n, std::vector<std::string>& g, const string& t, int ep, float r, int m)
+        : anime_id(id), name(n), genres(g), type(t), episodes(ep), rating(r), members(m) {}
 
     // Sobrecarga del operador < para ordenar alfabéticamente por nombre
     bool operator<(const Anime& other) const {
@@ -34,10 +35,11 @@ public:
     }
     // Método para mostrar la información del anime
     void display() const {
-        std::cout << "\nID: " << anime_id
-                << "\nTítulo: " << name
-                << "\nGénero(s): " << genre
-                << "\nTipo: " << type
+        std::cout << "\nID: " << anime_id << "\nTítulo: " << name << "\nGénero(s): ";
+        for (const auto& genre : genres) {
+            std::cout << genre << " "; 
+        }
+        std::cout << "\nTipo: " << type
                 << "\nEpisodios: " << episodes
                 << "\nCalificación: " << rating
                 << "\nMiembros: " << members

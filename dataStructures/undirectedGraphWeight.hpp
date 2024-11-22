@@ -17,7 +17,7 @@ struct edge {
 
     Anime v1;          /**< The first vertex of the edge. */
     Anime v2;          /**< The second vertex of the edge. */
-    int weight;
+    long double weight;
 };
 
 /**
@@ -34,7 +34,7 @@ public:
      *  It initializes the graph with an empty collection of vertices and edges.
      */
     UndirectedGraphWeight() = default;
-
+    
     /**
      *  Clears the graph.
      */
@@ -159,7 +159,7 @@ public:
      *  @param[in]  v1  The identifier of the first vertex of the edge.
      *  @param[in]  v2  The identifier of the second vertex of the edge.
      */
-    void add_edge(const Anime& v1, const Anime& v2, const int weight)
+    void add_edge(const Anime& v1, const Anime& v2, const long double weight)
     {
         // Check if the vertices exist
         if (!contains_vertex(v1) || !contains_vertex(v2)) {
@@ -663,5 +663,9 @@ private:
     std::vector<edge> edges_;                                       /**< The edges of the graph. */
     std::unordered_map<Anime, unsigned long long, Anime::Hash> mapping_;   /**< Mapping from vertex Ids to indices in `vertices_`. */
 };
+
+long double calculateSimilarity(const Anime& a, const Anime& b); 
+
+void buildGraph(UndirectedGraphWeight& graph, long double treshold);
 
 #endif

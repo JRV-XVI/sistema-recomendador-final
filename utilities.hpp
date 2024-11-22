@@ -27,7 +27,7 @@ void readCSV(const std::string& filename, T &dataStructure) {
 
     while (std::getline(file, line)) {
         // Atributes variables
-        std::string name, genre, type;
+        std::string name, genres, type;
         int id = 0, episodes = -1, members = -1;
         float rating = -1.0f;
        
@@ -54,19 +54,31 @@ void readCSV(const std::string& filename, T &dataStructure) {
         }
 
         // Leer el campo "genre" (manejar géneros con y sin comillas)
-        std::getline(ss, genre, ',');
-        if (genre[0] == '"') {
-            while (genre.back() != '"') {
+        std::getline(ss, genres, ',');
+        if (genres[0] == '"') {
+            while (genres.back() != '"') {
                 std::string temp;
                 std::getline(ss, temp, ',');
-                genre += "," + temp;
+                genres += "," + temp;
             }
-            genre = genre.substr(1, genre.size() - 2); // Quitar comillas
+            genres = genres.substr(1, genres.size() - 2); // Quitar comillas
         }
         
-        if (genre == "")
+        // Checa si existen generos
+        if (genres == "")
             continue;
-
+        
+        // Separar los géneros en subcategorías y limpiarlos
+        std::stringstream genreStream(genres);
+        std::string genre;
+        std::vector<std::string> vectorGenre;
+        while (std::getline(genreStream, genre, ',')) {
+            // Eliminar espacios al inicio y al final de cada género
+            genre.erase(0, genre.find_first_not_of(" "));
+            genre.erase(genre.find_last_not_of(" ") + 1);
+            vectorGenre.push_back(genre);
+        }
+        
         // Save type
         getline(ss, data, ',');
         type = data;
@@ -90,7 +102,7 @@ void readCSV(const std::string& filename, T &dataStructure) {
         members = stoi(data);
         
         // Create anime object
-        Anime anime(id, name, genre, type, episodes, rating, members);
+        Anime anime(id, name, vectorGenre, type, episodes, rating, members);
         
         if constexpr (std::is_same<T, UndirectedGraphWeight>::value) {
             dataStructure.add_vertex(anime); // Create a node on graph
@@ -102,7 +114,7 @@ void readCSV(const std::string& filename, T &dataStructure) {
 
 // Use vector to storage elements
 template <typename T>
-void extractUniqueCategories(const std::string& filename, T& typesArray) {
+void extractUniques(const std::string& filename, T& uniqueGenre, T& uniqueTypes) {
     std::ifstream file(filename);
     std::string line;
 
@@ -142,6 +154,29 @@ void extractUniqueCategories(const std::string& filename, T& typesArray) {
             genres = genres.substr(1, genres.size() - 2);  // Quitar comillas
         }
 
+        // Separar los géneros en subcategorías y limpiarlos
+        std::stringstream genreStream(genres);
+        std::string genre;
+        while (std::getline(genreStream, genre, ',')) {
+            // Eliminar espacios al inicio y al final de cada género
+            genre.erase(0, genre.find_first_not_of(" "));
+            genre.erase(genre.find_last_not_of(" ") + 1);
+
+            // Verificar si el género ya está en genresArray
+            bool exists = false;
+            for (int i = 0; i < uniqueGenre.size(); ++i) {
+                if (uniqueGenre[i] == genre) {
+                    exists = true;
+                    break;
+                }
+            }
+
+            // Agregar género si no existe en genresArray
+            if (!exists) {
+                uniqueGenre.push_back(genre);
+            }
+        }
+
         // Leer el campo "type" (manejar tipos con y sin comillas)
         std::getline(ss, types, ',');
         if (types[0] == '"') {
@@ -161,18 +196,18 @@ void extractUniqueCategories(const std::string& filename, T& typesArray) {
             type.erase(0, type.find_first_not_of(" "));
             type.erase(type.find_last_not_of(" ") + 1);
 
-            // Verificar si el género ya está en typesArray
+            // Verificar si el género ya está en uniqueTypes
             bool exists = false;
-            for (int i = 0; i < typesArray.size(); ++i) {
-                if (typesArray[i] == type) {
+            for (int i = 0; i < uniqueTypes.size(); ++i) {
+                if (uniqueTypes[i] == type) {
                     exists = true;
                     break;
                 }
             }
 
-            // Agregar género si no existe en typesArray
+            // Agregar género si no existe en uniqueTypes
             if (!exists) {
-                typesArray.push_back(type);
+                uniqueTypes.push_back(type);
             }
         }
     }
