@@ -70,14 +70,15 @@ public:
      *
      *  @return A const weight of two vertices.
      */
-    const int weight(const Anime &v1, const Anime &v2) {
+    const long double weight(const Anime &v1, const Anime &v2) {
     // Check if the vertices exist
-    for (const auto &ei : edges_) {
-      if (ei.v1 == v1 && ei.v2 == v2)
-        return ei.weight;
+        for (const auto &ei : edges_) {
+            if ((ei.v1 == v1 && ei.v2 == v2) || (ei.v1 == v2 && ei.v2 == v1)) {
+                return ei.weight;
+            }
+        }
+        return -1;
     }
-    return -1;
-  }
 
     /**
      *  Checks if the graph is empty.

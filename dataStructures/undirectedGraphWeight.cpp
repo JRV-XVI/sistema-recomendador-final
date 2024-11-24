@@ -6,8 +6,7 @@
 long double calculateSimilarity(const Anime& a, const Anime& b) {
     // Similitud basada en géneros
     std::vector<std::string> commonGenres;
-    std::set_intersection(a.genres.begin(), a.genres.end(), b.genres.begin(), b.genres.end(),
-                          std::back_inserter(commonGenres));
+    std::set_intersection(a.genres.begin(), a.genres.end(), b.genres.begin(), b.genres.end(), std::back_inserter(commonGenres));
     long double genreSimilarity = static_cast<long double>(commonGenres.size()) / std::max(a.genres.size(), b.genres.size());
 
     // Similitud basada en tipo
@@ -27,10 +26,10 @@ long double calculateSimilarity(const Anime& a, const Anime& b) {
 
     // Combinar las similitudes (puedes ajustar los pesos)
     long double similarity = (0.4 * genreSimilarity) +
-                        (0.15 * typeSimilarity) +
-                        (0.05 * episodeSimilarity) +
-                        (0.2 * ratingSimilarity) +
-                        (0.2 * memberSimilarity);
+                        (0.2 * typeSimilarity) +
+                        (0.15 * episodeSimilarity) +
+                        (0.15 * ratingSimilarity) +
+                        (0.1 * memberSimilarity);
 
     return similarity;
 }

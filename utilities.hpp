@@ -100,6 +100,8 @@ void readCSV(const std::string& filename, T &dataStructure) {
         // Save members
         getline(ss, data, ',');
         members = stoi(data);
+        if (members < 200000)
+            continue;
         
         // Create anime object
         Anime anime(id, name, vectorGenre, type, episodes, rating, members);
