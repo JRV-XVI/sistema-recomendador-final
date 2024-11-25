@@ -29,10 +29,10 @@ int main() {
                 break;
 
             case 3:
-                // Implementar la opción 3 aquí
+                graphConstruction();
                 break;
             case 4:
-                // Implementar la opción 4 aquí
+                graphPaths();
                 break;
             case 5:
                 std::cout << "Saliendo del programa...\n";

@@ -14,6 +14,9 @@
 #include <string>
 #include <type_traits>
 #include <chrono>
+#include <set>
+
+enum option {BFS, DFS, EXIT, YES};
 
 template <typename T>
 void readCSV(const std::string& filename, T &dataStructure) {
@@ -103,8 +106,7 @@ void readCSV(const std::string& filename, T &dataStructure) {
         // Save members
         getline(ss, data, ',');
         members = stoi(data);
-        if (members < 200000)
-            continue;
+        
         
         // Create anime object
         Anime anime(id, name, vectorGenre, type, episodes, rating, members);
@@ -112,6 +114,8 @@ void readCSV(const std::string& filename, T &dataStructure) {
         if constexpr (std::is_same<T, std::vector<Anime>>::value) {
             dataStructure.push_back(anime); // Agregar al vector
         } else if constexpr (std::is_same<T, UndirectedGraphWeight>::value) {
+            if (members < 200000)
+                continue;
             dataStructure.add_vertex(anime); // Create a node on graph
         }
     }
@@ -467,7 +471,177 @@ void construirAVL() {
     }
 }
 
+void printEdges(UndirectedGraphWeight& graph) {
+	// Impresion de nodos similares 
+	std::set<std::string> names;
+	std::cout << "--- Creacion de aristas ---" << std::endl;
+	for (const auto& edge : graph.edges()) {
+		std::cout << "Arco entre {" << edge.v1.name << "} y {" << edge.v2.name << "} con peso de:  " << edge.weight << std::endl;
+		 names.insert(edge.v1.name);
+	}
+	std::cout << std::endl;
+	// Consulta de elementos adyacentes a un nodo
+	std::cout << "--- Adyacencia de animes ---" << std::endl;
+	for (const auto& name : names) {
+		std::cout << "Animes adyacentes a '" << name << "' son: ";
+		for (const auto& adyacent : graph.neighbors(graph.find_vertex(name))) {
+			std::cout << "{"<< adyacent.name << "} "; 
+		}
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;
+	std::cout << "Cantidad de nodos con aristas disponibles: " << names.size() << std::endl << std::endl;
+	return;
+}
 
+const Anime& selectStartNode(UndirectedGraphWeight& graph) {
+	std::string name;
+	std::cout << "Escribe el nombre del anime el cual sera como nodo inicial: ";
+	std::getline(std::cin >> std::ws, name);
+	return graph.find_vertex(name);
+}
+
+void printTrail(UndirectedGraphWeight& graph) {
+	// Recorridos de grafos
+	unsigned option = BFS;
+	std::cout << "--- Recorrido de grafo ---" << std::endl;
+	 do {
+		std::cout << "Selecciona el tipo de recorrido a realizar (0: BFS, 1: DFS, 2: Salir): ";
+		std::cin >> option;
+		switch (option) {
+			case BFS:
+				graph.print_bfs(selectStartNode(graph));
+				std::cout << std::endl;
+				break;
+			case DFS:
+				graph.print_dfs(selectStartNode(graph));
+				std::cout << std::endl;
+				break;
+			case EXIT:
+				std::cout << "Saliendo de recorridos de grafos..." << std::endl;
+				break;
+			default:
+				std::cout << "Opcion invalida!" << std::endl;
+				break;
+		}
+	 } while (option != EXIT);
+	return;
+}
+ 
+void printPath(UndirectedGraphWeight& graph) {
+	std::string name1, name2;
+	std::vector<Anime> path;
+	int option = BFS;
+	std::cout << "--- Caminos de un anime a otro ---" << std::endl;
+	do {
+		long double weight = 0.0;
+		std::cout << "Seleccione las opciones (0: Camino BFS, 1: Camino DFS, 2: Salir): ";
+		std::cin >> option;
+		if (option == EXIT)
+			break;
+		std::cout << "Anime conocido: ";
+		std::getline(std::cin >> std::ws, name1);
+		std::cout << "Anime que desea encontrar si tiene relacion: ";
+		std::getline(std::cin >> std::ws, name2);
+		switch (option) {
+			case BFS:
+				path = graph.find_path_bfs(graph.find_vertex(name1), graph.find_vertex(name2));
+				std::cout << "Camino BFS: " << std::endl;
+				for (size_t i = 0; i < path.size(); i++) {
+					std::cout << path[i].name << " ";
+					if (i + 1 != path.size()) {  
+						weight += graph.weight(path[i], path[i + 1]);
+					}
+				}
+				std::cout << " --> Ponderacion: " << weight << std::endl;
+				break;
+			case DFS:
+				path = graph.find_path_dfs(graph.find_vertex(name1), graph.find_vertex(name2));
+				std::cout << "Camino DFS:" << std::endl;
+				for (size_t i = 0; i < path.size(); i++) {
+					std::cout << path[i].name << " ";
+					if (i + 1 != path.size()) {  
+						weight += graph.weight(path[i], path[i + 1]);
+					}
+				}
+				std::cout << " --> Ponderacion: " << weight << std::endl;
+				break;
+			case EXIT:
+				break;
+			default:
+				std::cout << "Opcion invalida!" << std::endl;
+				weight = 0.0;
+				break;
+		}
+	} while (option != EXIT);
+}
+
+void graphConstruction() {
+	UndirectedGraphWeight graph;
+	int option = 0;
+	long double threshold = 0.8; // Umbral recomendado 0.75
+        std::cout << "--- Construccion de grafo de similitud ---" << std::endl;
+	std::cout << "Seleccione el umbral de similitud entre 0.0 y 1.0 (Se recomienda umbrales altos para no saturar la impresion): ";
+	std::cin >> threshold;
+	if (threshold < 0 || threshold > 1) {
+		std::cout << "Umbral invalido, reconfigurado a 0.8..." << std::endl;
+		threshold = 0.8;
+	}
+        auto timeNode = timeExecuation([&]{readCSV("anime.csv", graph);}); // Crea los nodos del grafo
+        std::cout << "Tiempo de crear los nodos: " << timeNode/1e6 << " ms" << std::endl;
+	auto timeEdge = timeExecuation([&]{buildGraph(graph, threshold);}); // Crea los arcos dependiendo de la similitud de los nodos
+        std::cout << "Tiempo de generar las aristas de similitud entre nodos: " << timeEdge/1e6 << " ms" << std::endl;
+	do {
+		std::cout << "Desea ver los vecinos de cada anime {0: no, 1: si}: ";
+		std::cin >> option;
+		switch (option) {
+			case 1:
+				printEdges(graph);
+				break;
+			case 0:
+				std::cout << "Saliendo de grafos de similitud..." << std::endl;
+				break;
+			default:
+				std::cout << "Opcion invalida!" << std::endl;
+				break;
+		}
+	} while (option != 1);
+	return;
+}
+ 
+void graphPaths() {
+	UndirectedGraphWeight graph;
+	int option = 0;
+	long double threshold = 0.8; // Umbral recomendado 0.75
+        std::cout << "--- Recorridos y caminos de grafos ---" << std::endl;
+	std::cout << "Seleccione el umbral de similitud entre 0.0 y 1.0 (Umbral recomendado 0.75): ";
+	std::cin >> threshold;
+	if (threshold < 0 || threshold > 1) {
+		std::cout << "Umbral invalido, reconfigurado a 0.8..." << std::endl;
+		threshold = 0.8;
+	}
+	readCSV("anime.csv", graph); // Crea los nodos del grafo
+	buildGraph(graph, threshold); // Crea los arcos dependiendo de la similitud de los nodos
+	do {
+		std::cout << "Opciones disponibles: Recorridos (0), Caminos (1), Salir (2): ";
+		std::cin >> option;
+		switch (option) {
+			case 0:
+				printTrail(graph);
+                                break;
+			case 1:
+				printPath(graph);
+                                break;
+			case 2:
+				std::cout << "Saliendo de recorridos y busqueda de caminos..." << std::endl;
+				break;
+			default:
+				std::cout << "Opcion invalida!" << std::endl;
+				break;
+		}
+	} while (option != EXIT);
+	return;
+}
 
 
 #endif
